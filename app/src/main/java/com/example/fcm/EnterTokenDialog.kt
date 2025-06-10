@@ -33,13 +33,13 @@ import kotlinx.coroutines.tasks.await
 
 @Composable
 fun EnterTokenDialog(
-    token:String,
-    onTokenChange:(String)->Unit,
-    onSubmit: ()->Unit
-){
-    val clipboardManager= LocalClipboardManager.current
-    val context= LocalContext.current
-    val scope= rememberCoroutineScope()
+    token: String,
+    onTokenChange: (String) -> Unit,
+    onSubmit: () -> Unit
+) {
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     Dialog(
         onDismissRequest = {},
@@ -58,10 +58,10 @@ fun EnterTokenDialog(
         ) {
 
             OutlinedTextField(
-                value =token ,
+                value = token,
                 onValueChange = onTokenChange,
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = {Text(text = "Remote user token")},
+                placeholder = { Text(text = "Enter Customer ID") }, // Changed placeholder
                 maxLines = 1
             )
 
@@ -74,24 +74,24 @@ fun EnterTokenDialog(
                 OutlinedButton(
                     onClick = {
                         scope.launch {
-                            val localtoken=Firebase.messaging.token.await()
+                            val localtoken = Firebase.messaging.token.await()
                             clipboardManager.setText(AnnotatedString(localtoken))
 
                             Toast.makeText(
                                 context,
-                                "Copied Local Token!",
+                                "Copied FCM Token!",
                                 Toast.LENGTH_LONG
                             ).show()
                         }
                     }
                 ) {
-                    Text(text = "Copy Token")
+                    Text(text = "Copy FCM Token")
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Button(onClick = onSubmit) {
-                    Text(text = "Submit")
+                    Text(text = "Register")
                 }
             }
         }

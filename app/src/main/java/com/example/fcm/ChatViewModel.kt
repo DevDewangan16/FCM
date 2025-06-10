@@ -17,47 +17,63 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.create
 import java.io.IOException
 
-class ChatViewModel:ViewModel() {
+class ChatViewModel: ViewModel() {
 
     var state by mutableStateOf(ChatState())
         private set
 
-
-    private val api:FcmApi=Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/")
+    // Update this URL to your CodeIgniter backend URL
+    private val api: FcmApi = Retrofit.Builder()
+        .baseUrl("http://10.0.2.2:8000/") // Replace with your server URL
         .addConverterFactory(MoshiConverterFactory.create())
         .build()
         .create()
 
-    //This init block is used for posting the message in all the devices.
     init {
         viewModelScope.launch {
             Firebase.messaging.subscribeToTopic("chat").await()
         }
     }
 
-    fun onRemoteTokenChange(newToken:String){
-        state=state.copy(
+    fun onRemoteTokenChange(newToken: String) {
+        state = state.copy(
             remoteToken = newToken
         )
     }
 
-    fun onSubmitRemoteToken(){
-        state=state.copy(
+    fun onSubmitRemoteToken() {
+        state = state.copy(
             isEnteringToken = false
         )
+        // Register token with backend
+        registerTokenWithBackend(state.remoteToken)
     }
 
-    fun onMessageChange(message:String){
-        state=state.copy(
+    fun onMessageChange(message: String) {
+        state = state.copy(
             messageText = message
         )
     }
 
-    @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
-    fun sendMessage(isBroadcast:Boolean){
+    private fun registerTokenWithBackend(customerId: String) {
         viewModelScope.launch {
-            val messageDto=SendMessageDto(
+            try {
+                val currentToken = Firebase.messaging.token.await()
+                val tokenDto = RegisterTokenDto(
+                    customer_id = customerId,
+                    fcm_token = currentToken
+                )
+                api.registerToken(tokenDto)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
+    fun sendMessage(isBroadcast: Boolean) {
+        viewModelScope.launch {
+            val messageDto = SendMessageDto(
                 to = if (isBroadcast) null else state.remoteToken,
                 notification = NotificationBody(
                     title = "New Message",
@@ -66,18 +82,18 @@ class ChatViewModel:ViewModel() {
             )
 
             try {
-                if (isBroadcast){
+                if (isBroadcast) {
                     api.broadcast(messageDto)
-                }else{
+                } else {
                     api.sendMessage(messageDto)
                 }
 
-                state=state.copy(
+                state = state.copy(
                     messageText = ""
                 )
-            }catch (e:HttpException){
+            } catch (e: HttpException) {
                 e.printStackTrace()
-            }catch (e:IOException){
+            } catch (e: IOException) {
                 e.printStackTrace()
             }
         }
