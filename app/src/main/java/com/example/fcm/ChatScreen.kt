@@ -1,6 +1,3 @@
-package com.example.fcm
-
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,58 +11,84 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import java.lang.reflect.Modifier
+// LoadingScreen.kt
+@Composable
+fun LoadingScreen() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator()
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Setting up messaging...")
+    }
+}
 
+// ErrorScreen.kt
+@Composable
+fun ErrorScreen(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = message, color = MaterialTheme.colorScheme.error)
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onRetry) {
+            Text("Retry")
+        }
+    }
+}
+
+// ChatScreen.kt
 @Composable
 fun ChatScreen(
-    messageText:String,
-    onMessageChange:(String)->Unit,
-    onMessageSend:()->Unit,
-    onMessageBroadcast:()->Unit
-){
+    messageText: String,
+    onMessageChange: (String) -> Unit,
+    onMessageSend: () -> Unit,
+    onMessageBroadcast: () -> Unit
+) {
     Column(
-        modifier = androidx.compose.ui.Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
-            value =messageText ,
+            value = messageText,
             onValueChange = onMessageChange,
-            placeholder = { Text(text = "Enter a message")},
-            modifier = androidx.compose.ui.Modifier
+            placeholder = { Text("Enter a message") },
+            modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth())
-        Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
+                .fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Row(
-            modifier = androidx.compose.ui.Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.End
         ) {
-
             IconButton(onClick = onMessageSend) {
-                Icon(imageVector =Icons.Default.Send, contentDescription = "Send" )
+                Icon(Icons.Default.Send, "Send")
             }
 
-            Spacer(modifier = androidx.compose.ui.Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             IconButton(onClick = onMessageBroadcast) {
-                Icon(imageVector =Icons.Default.Share, contentDescription = "BroadCast" )
+                Icon(Icons.Default.Share, "Broadcast")
             }
         }
     }

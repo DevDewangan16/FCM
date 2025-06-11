@@ -1,4 +1,3 @@
-// Updated FcmApi.kt
 package com.example.fcm
 
 import retrofit2.http.Body
