@@ -7,3 +7,10 @@ data class ChatState(
     val customerId: String = "",
     val messageText: String = ""
 )
+
+data class FcmState(
+    val isLoading: Boolean = false,
+    val isSuccess: Boolean = false,
+    val errorMessage: String? = null,
+    val customerId: String = ""
+)

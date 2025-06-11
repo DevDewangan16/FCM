@@ -6,15 +6,10 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
@@ -33,48 +28,33 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupObservers() {
         viewModel.state.observe(this) { state ->
-            val loadingLayout = findViewById<LinearLayout>(R.id.loadingLayout)
-            val errorLayout = findViewById<LinearLayout>(R.id.errorLayout)
-            val chatLayout = findViewById<LinearLayout>(R.id.chatLayout)
+            val loadingLayout = findViewById<View>(R.id.loadingLayout)
+            val errorLayout = findViewById<View>(R.id.errorLayout)
+            val successLayout = findViewById<View>(R.id.successLayout)
 
             when {
                 state.isLoading -> {
                     loadingLayout.visibility = View.VISIBLE
                     errorLayout.visibility = View.GONE
-                    chatLayout.visibility = View.GONE
+                    successLayout.visibility = View.GONE
                 }
                 state.errorMessage != null -> {
                     loadingLayout.visibility = View.GONE
                     errorLayout.visibility = View.VISIBLE
-                    chatLayout.visibility = View.GONE
+                    successLayout.visibility = View.GONE
 
                     findViewById<TextView>(R.id.errorText).text = state.errorMessage
                     findViewById<Button>(R.id.retryButton).setOnClickListener {
-                        viewModel.initializeFcm()
+                        viewModel.retry()
                     }
                 }
-                state.registrationSuccess -> {
+                state.isSuccess -> {
                     loadingLayout.visibility = View.GONE
                     errorLayout.visibility = View.GONE
-                    chatLayout.visibility = View.VISIBLE
+                    successLayout.visibility = View.VISIBLE
 
-                    val messageInput = findViewById<EditText>(R.id.messageInput)
-                    val sendButton = findViewById<ImageButton>(R.id.sendButton)
-                    val broadcastButton = findViewById<ImageButton>(R.id.broadcastButton)
-
-                    messageInput.setText(state.messageText)
-
-                    sendButton.setOnClickListener {
-                        viewModel.sendMessage(false)
-                    }
-
-                    broadcastButton.setOnClickListener {
-                        viewModel.sendMessage(true)
-                    }
-
-                    messageInput.addTextChangedListener {
-                        viewModel.onMessageChange(it.toString())
-                    }
+                    findViewById<TextView>(R.id.deviceIdText).text =
+                        "Device ID: ${state.customerId}"
                 }
             }
         }
