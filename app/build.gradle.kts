@@ -76,6 +76,8 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.appcompat)
+    implementation("com.google.android.material:material:1.12.0")
+
 
 
     implementation(platform("com.google.firebase:firebase-bom:33.15.0"))

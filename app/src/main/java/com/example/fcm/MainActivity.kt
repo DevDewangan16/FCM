@@ -1,46 +1,79 @@
 package com.example.fcm
 
-import ChatScreen
-import ErrorScreen
-import LoadingScreen
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.fcm.ui.theme.FCMTheme
+import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.ViewModelProvider
 
-class MainActivity : ComponentActivity() {
-    private val viewModel: ChatViewModel by viewModels()
+class MainActivity : AppCompatActivity() {
+    private lateinit var viewModel: ChatViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
         requestNotificationPermission()
 
-        setContent {
-            FCMTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    when {
-                        viewModel.state.isLoading -> LoadingScreen()
-                        viewModel.state.errorMessage != null -> ErrorScreen(
-                            message = viewModel.state.errorMessage!!,
-                            onRetry = { viewModel.initializeFcm() }
-                        )
-                        viewModel.state.registrationSuccess -> ChatScreen(
-                            messageText = viewModel.state.messageText,
-                            onMessageChange = viewModel::onMessageChange,
-                            onMessageSend = { viewModel.sendMessage(false) },
-                            onMessageBroadcast = { viewModel.sendMessage(true) }
-                        )
+        viewModel = ViewModelProvider(this).get(ChatViewModel::class.java)
+        viewModel.initializeFcm()
+
+        setupObservers()
+    }
+
+    private fun setupObservers() {
+        viewModel.state.observe(this) { state ->
+            val loadingLayout = findViewById<LinearLayout>(R.id.loadingLayout)
+            val errorLayout = findViewById<LinearLayout>(R.id.errorLayout)
+            val chatLayout = findViewById<LinearLayout>(R.id.chatLayout)
+
+            when {
+                state.isLoading -> {
+                    loadingLayout.visibility = View.VISIBLE
+                    errorLayout.visibility = View.GONE
+                    chatLayout.visibility = View.GONE
+                }
+                state.errorMessage != null -> {
+                    loadingLayout.visibility = View.GONE
+                    errorLayout.visibility = View.VISIBLE
+                    chatLayout.visibility = View.GONE
+
+                    findViewById<TextView>(R.id.errorText).text = state.errorMessage
+                    findViewById<Button>(R.id.retryButton).setOnClickListener {
+                        viewModel.initializeFcm()
+                    }
+                }
+                state.registrationSuccess -> {
+                    loadingLayout.visibility = View.GONE
+                    errorLayout.visibility = View.GONE
+                    chatLayout.visibility = View.VISIBLE
+
+                    val messageInput = findViewById<EditText>(R.id.messageInput)
+                    val sendButton = findViewById<ImageButton>(R.id.sendButton)
+                    val broadcastButton = findViewById<ImageButton>(R.id.broadcastButton)
+
+                    messageInput.setText(state.messageText)
+
+                    sendButton.setOnClickListener {
+                        viewModel.sendMessage(false)
+                    }
+
+                    broadcastButton.setOnClickListener {
+                        viewModel.sendMessage(true)
+                    }
+
+                    messageInput.addTextChangedListener {
+                        viewModel.onMessageChange(it.toString())
                     }
                 }
             }
