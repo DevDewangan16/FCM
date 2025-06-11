@@ -73,6 +73,11 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation (libs.androidx.compiler)
 
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.appcompat)
+
+
     implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging")
